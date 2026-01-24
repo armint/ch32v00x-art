@@ -1,0 +1,35 @@
+# CH32V00x-ArT Library
+
+The **CH32V00x-ArT** library provides reusable components that bridge the **libArT** utility library and the **ch32v00x-system** HAL. It specifically implements stream abstractions for serial communication on WCH CH32V microcontrollers.
+
+## Features
+
+- **Interrupt-driven Serial I/O**: Efficient, non-blocking serial communication using `etl::circular_buffer`.
+- **Stream Implementation**: Implements `art::Writable` and `art::Readable` interfaces from `libArT`.
+- **Debug Utilities**:
+    - `DebugSerial`: Buffered, interrupt-driven serial output for logging.
+    - `BasicDebugSerial`: Minimal, blocking serial output for early boot or low-resource scenarios.
+- **Full Duplex Support**: `FullDuplexSerial` for simultaneous transmit and receive.
+
+## Core Components
+
+- `SerialWritable`: Buffered UART transmission using interrupts.
+- `SerialReadable`: Buffered UART reception using interrupts.
+- `DebugSerial`: High-level wrapper for serial debugging.
+- `BasicSerialWritable`: Simple polling-based UART transmission.
+- `FullDuplexSerial`: Combines buffered reading and writing.
+
+## Dependencies
+
+- **art-core**: Provides the base `Readable` and `Writable` interfaces.
+- **ch32v00x-system**: Provides peripheral access to USART and GPIO.
+- **etl**: Uses the Embedded Template Library for circular buffers.
+
+## Usage in CMake
+
+This library is intended to be used as a dependency in the `ch32v00x-examples` project or other projects using these MCUs.
+
+```cmake
+add_subdirectory(dependencies/ch32v00x-art)
+target_link_libraries(${PROJECT_NAME} PRIVATE ch32v00x-art)
+```
