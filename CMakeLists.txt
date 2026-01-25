@@ -19,12 +19,12 @@ target_link_libraries(ch32v00x-art
         etl::etl
 )
 
-# Use ch32v00x-system interface without pulling in its objects into the archive
+# Use ch32v00x-system interface
 target_include_directories(ch32v00x-art
-        PRIVATE $<TARGET_PROPERTY:ch32v00x-system,INTERFACE_INCLUDE_DIRECTORIES>
+        PUBLIC $<TARGET_PROPERTY:ch32v00x-system,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_compile_definitions(ch32v00x-art
-        PRIVATE $<TARGET_PROPERTY:ch32v00x-system,INTERFACE_COMPILE_DEFINITIONS>
+        PUBLIC $<TARGET_PROPERTY:ch32v00x-system,INTERFACE_COMPILE_DEFINITIONS>
 )
 
 target_compile_features(ch32v00x-art PUBLIC cxx_std_23)
