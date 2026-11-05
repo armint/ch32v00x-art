@@ -4,8 +4,8 @@
 #include "SerialReadable.h"
 
 class Serial : public SerialWritable, public SerialReadable {
-   uint8_t txBuffer[96];
-   uint8_t rxBuffer[32];
+   RingBuffer<uint8_t, 128> txBuffer;
+   RingBuffer<uint8_t, 32> rxBuffer;
 
    public:
    using Writable::write;

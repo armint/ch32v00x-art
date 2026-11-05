@@ -4,7 +4,7 @@ The **CH32V00x-ArT** library provides reusable components that bridge the **libA
 
 ## Features
 
-- **Interrupt-driven Serial I/O**: Efficient, non-blocking serial communication using `etl::circular_buffer`.
+- **Interrupt-driven Serial I/O**: Efficient, non-blocking serial communication using the libArT `RingBuffer` (`utils/RingBuffer.h`).
 - **Stream Implementation**: Implements `art::Writable` and `art::Readable` interfaces from `libArT`.
 - **Debug Utilities**:
     - `DebugSerial`: Buffered, interrupt-driven serial output for logging.
@@ -21,9 +21,8 @@ The **CH32V00x-ArT** library provides reusable components that bridge the **libA
 
 ## Dependencies
 
-- **art-core**: Provides the base `Readable` and `Writable` interfaces.
+- **art-core**: Provides the base `Readable` and `Writable` interfaces and the `RingBuffer` for the serial buffers.
 - **ch32v00x-system**: Provides peripheral access to USART and GPIO.
-- **etl**: Uses the Embedded Template Library for circular buffers.
 
 ## Timestamps
 

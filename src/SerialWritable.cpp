@@ -1,17 +1,17 @@
 #include "SerialWritable.h"
 #include <utils/Interrupt.h>
 
-SerialWritable::SerialWritable(USART_TypeDef *usartTypeDef, art::span<uint8_t> txBuffer)
+SerialWritable::SerialWritable(USART_TypeDef *usartTypeDef, RingBufferBase<uint8_t> &txBuffer)
    : usart(usartTypeDef)
-   , txBuffer(txBuffer.data(), txBuffer.size()) {
+   , txBuffer(txBuffer) {
 }
 
 
 void SerialWritable::handleInterrupt() {
    if(usart.isTxRegisterEmpty() && usart.isTxEmptyInterruptEnabled()) {
-      if(!txBuffer.empty()) {
-         usart.setData(txBuffer.front());
-         txBuffer.pop();
+      uint8_t c;
+      if(txBuffer.try_pop(c)) {
+         usart.setData(c);
       }
       if(txBuffer.empty()) {
          usart.disableTxEmptyInterrupt();
@@ -25,20 +25,14 @@ art::expected<void, Writable::Error> SerialWritable::flush(size_t count) {
    utils::Timeout timeout(5000);
    size_t flushed = 0;
    while(true) {
-      bool empty;
-      {
-         Interrupt::CriticalSection ics;
-         empty = txBuffer.empty();
-      }
-
-      if(empty || timeout.hasExpired() || flushed >= count) {
+      if(txBuffer.empty() || timeout.hasExpired() || flushed >= count) {
          break;
       }
 
-      if(usart.isTxRegisterEmpty()) {
-         Interrupt::CriticalSection ics;
-         usart.setData(txBuffer.front());
-         txBuffer.pop();
+      // The TX interrupt is off, so this is the only consumer.
+      uint8_t c;
+      if(usart.isTxRegisterEmpty() && txBuffer.try_pop(c)) {
+         usart.setData(c);
          flushed++;
       }
    }
@@ -62,19 +56,13 @@ art::expected<void, Writable::Error> SerialWritable::flush() {
 art::expected<size_t, Writable::Error> SerialWritable::write(art::span<const uint8_t> data) {
    for(size_t i = 0; i < data.size(); i++) {
       uint8_t c = data[i];
-      bool full;
-      {
-         Interrupt::CriticalSection ics;
-         full = txBuffer.full();
-      }
-      if(full) {
+      if(txBuffer.full()) {
          auto res = flush(1);
          if(!res) {
             return art::unexpected(res.error());
          }
       }
-      Interrupt::CriticalSection ics;
-      txBuffer.push(c);
+      static_cast<void>(txBuffer.try_push(c));
    }
    usart.enableTxEmptyInterrupt();
    return data.size();

@@ -4,7 +4,7 @@
 #include "SerialWritable.h"
 
 class DebugSerial : public SerialWritable {
-   uint8_t txBuffer[96];
+   RingBuffer<uint8_t, 128> txBuffer;
 
    public:
    using Writable::write;

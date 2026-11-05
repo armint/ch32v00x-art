@@ -16,7 +16,6 @@ target_include_directories(ch32v00x-art
 target_link_libraries(ch32v00x-art
         PRIVATE
         art-core
-        etl::etl
 )
 
 # Use ch32v00x-system interface
