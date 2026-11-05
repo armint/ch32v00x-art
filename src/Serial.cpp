@@ -10,11 +10,12 @@ Serial::Serial()
    , SerialReadable(USART1, rxRing) {}
 
 void Serial::initialize() {
-   GpioPin dbgTx(GPIOD, 5);
-   dbgTx.configureOutput(GpioPin::OutputMode::PushPull, GpioPin::OutputSpeed::Output10MHz, true);
+   const hw::GpioPin dbgTx(GPIOD, 5);
+   dbgTx.configure(hw::GpioPin::Mode::Alternate, hw::GpioPin::OutputType::PushPull, hw::GpioPin::Pull::None,
+                   hw::GpioPin::Speed::High);
 
-   GpioPin dbgRx(GPIOD, 6);
-   dbgRx.configureInput(GpioPin::InputMode::Floating);
+   const hw::GpioPin dbgRx(GPIOD, 6);
+   dbgRx.configure(hw::GpioPin::Mode::Input);
 
    SerialWritable::usart.configure(115200, USARTParity::None, UsartStopBits::StopBits_1);
    SerialWritable::usart.enableTx();

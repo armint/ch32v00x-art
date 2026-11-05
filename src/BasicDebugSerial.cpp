@@ -8,8 +8,9 @@ BasicDebugSerial::BasicDebugSerial()
    : BlockingSerialWritable(USART1) {}
 
 void BasicDebugSerial::initialize() {
-   GpioPin dbgTx(GPIOD, 5);
-   dbgTx.configureOutput(GpioPin::OutputMode::PushPull, GpioPin::OutputSpeed::Output10MHz, true);
+   const hw::GpioPin dbgTx(GPIOD, 5);
+   dbgTx.configure(hw::GpioPin::Mode::Alternate, hw::GpioPin::OutputType::PushPull, hw::GpioPin::Pull::None,
+                   hw::GpioPin::Speed::High);
    usart.configure(115200, USARTParity::None, UsartStopBits::StopBits_1);
    usart.enableTx();
    usart.enable();
