@@ -163,7 +163,7 @@ void Ch32UsbDeviceController::deliver(const Event &event) {
       break;
    case hw::usb::EventType::Out:
       if(isOpen(event.endpoint)) {
-         std::array<uint8_t, hw::UsbDevice::BulkMaxPacketSize> packet{};
+         std::array<uint8_t, hw::UsbDevice::BulkMaxPacketSize> packet; // readOut() fills size bytes
          const uint16_t size = device_.readOut(event.endpoint, packet);
          handler_->outPacketReceived(event.endpoint, art::span<const uint8_t>(packet.data(), size));
          armDeferredOut(event.endpoint);
@@ -225,6 +225,11 @@ bool Ch32UsbDeviceController::openEndpoint(const art::usb::EndpointConfig &confi
       openOut_ |= kEndpoint0Bit;
       return true;
    }
+   // The OUT packet is copied to a buffer of the bulk size, so a larger OUT packet (an interrupt endpoint of up
+   // to 1024 bytes) would be cut.
+   if(!isInEndpoint(config.address) && config.maxPacketSize > hw::UsbDevice::BulkMaxPacketSize) {
+      return false;
+   }
    const bool doubleBuffered = config.address == doubleBufferedOut_ && config.type == art::usb::EndpointType::Bulk;
    if(!device_.openEndpoint(config.address, toHardware(config.type), config.maxPacketSize, doubleBuffered)) {
       return false;
@@ -239,15 +244,20 @@ void Ch32UsbDeviceController::closeEndpoint(uint8_t endpointAddress) {
    }
    const uint8_t number = endpointNumber(endpointAddress);
    const size_t index = slot(endpointAddress);
-   staleEvents_[index] = static_cast<uint8_t>(packetsQueued_[index].load(std::memory_order_acquire) - packetsDelivered_[index]);
    deferredArms_ &= static_cast<uint16_t>(~(1u << number));
    if(number == 0u) {
+      staleEvents_[index] = static_cast<uint8_t>(packetsQueued_[index].load(std::memory_order_acquire) - packetsDelivered_[index]);
       openIn_ &= static_cast<uint16_t>(~kEndpoint0Bit);
       openOut_ &= static_cast<uint16_t>(~kEndpoint0Bit);
       return;
    }
    (isInEndpoint(endpointAddress) ? openIn_ : openOut_) &= static_cast<uint16_t>(~(1u << number));
-   device_.setNak(endpointAddress);
+   // NAK first, then count: setNak() tells if the hardware has completed a transfer that the interrupt has not
+   // queued yet. That event comes later and belongs to the closed endpoint too. The driver sets DATA0 again when
+   // the endpoint opens again (SET_INTERFACE).
+   const bool completionWaits = device_.setNak(endpointAddress);
+   staleEvents_[index] = static_cast<uint8_t>(packetsQueued_[index].load(std::memory_order_acquire) - packetsDelivered_[index] +
+                                              (completionWaits ? 1u : 0u));
    if(((openIn_ | openOut_) & static_cast<uint16_t>(~kEndpoint0Bit)) == 0u) {
       device_.closeAllEndpoints();
    }
@@ -278,16 +288,15 @@ bool Ch32UsbDeviceController::cancelInTransfer(uint8_t endpointAddress) {
    }
    const size_t index = slot(endpointAddress);
    // A NAK write would end the STALL. A stalled endpoint sends nothing, so only the queue decides.
-   if(!device_.isStalled(endpointAddress)) {
-      // hw::UsbDevice masks the USB interrupt in setNak(). A pending IN completion runs when the mask ends, so the
-      // queue counters are up to date after the call.
-      device_.setNak(endpointAddress);
-   }
+   // setNak() tells if the hardware has completed the packet and the interrupt has not queued the event yet. The
+   // interrupt runs when setNak() unmasks it, but nothing here orders that before the counter load, so the
+   // answer of the hardware counts. A flip of the data toggle that the write undid is repaired by the driver.
+   const bool completionWaits = !device_.isStalled(endpointAddress) && device_.setNak(endpointAddress);
    // An InComplete event that waits in the queue belongs to a packet that
    // the host acknowledged: it is still delivered. Events that
    // closeEndpoint() made stale are dropped, so they do not count.
    const auto waiting = static_cast<uint8_t>(packetsQueued_[index].load(std::memory_order_acquire) - packetsDelivered_[index]);
-   return waiting == staleEvents_[index];
+   return !completionWaits && waiting == staleEvents_[index];
 }
 
 void Ch32UsbDeviceController::armOutTransfer(uint8_t endpointAddress) {

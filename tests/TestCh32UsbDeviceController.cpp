@@ -284,14 +284,11 @@ TEST_CASE("Ch32UsbDeviceController stalls and clears endpoints") {
     f.controller.setEndpointStall(0x82, true);
     f.controller.setEndpointStall(0x82, false);
     CHECK_FALSE(f.hardware.isStalled(0x82));
-    CHECK(f.hardware.toggle[0x82] == 0);
   }
-  SUBCASE("clear on a VALID endpoint resets the toggle") {
+  SUBCASE("clear on a VALID endpoint drops the pending arm") {
     // CLEAR_FEATURE(ENDPOINT_HALT) on an endpoint that is not halted.
-    f.hardware.toggle[0x02] = 1;
     f.controller.armOutTransfer(0x02);
     f.controller.setEndpointStall(0x02, false);
-    CHECK(f.hardware.toggle[0x02] == 0);
     CHECK_FALSE(f.hardware.valid[0x02]);
     CHECK_FALSE(f.hardware.isStalled(0x02));
   }
@@ -319,8 +316,6 @@ TEST_CASE("Ch32UsbDeviceController takes back an IN packet") {
     CHECK(f.controller.cancelInTransfer(0x82));
     CHECK_FALSE(f.hardware.valid[0x82]);
     CHECK(f.hardware.nakCalls == std::vector<uint8_t>{0x82});
-    // The data toggle stays: the host did not acknowledge the packet.
-    CHECK(f.hardware.toggle[0x82] == 0);
     f.controller.poll();
     CHECK(f.events.log.empty());
     // The endpoint takes the next packet.
@@ -722,4 +717,59 @@ TEST_CASE("Ch32UsbDeviceController reports the speed of the hardware") {
   CHECK(f.controller.speed() == hw::UsbDevice::Speed::High);
   f.hardware.speed_ = hw::UsbDevice::Speed::Full;
   CHECK(f.controller.speed() == hw::UsbDevice::Speed::Full);
+}
+
+TEST_CASE("Ch32UsbDeviceController cancel does not claim a packet that the hardware completed") {
+  Fixture f;
+  f.openEp0();
+  REQUIRE(f.controller.openEndpoint({0x82, art::usb::EndpointType::Bulk, 64}));
+  const std::array<uint8_t, 2> data{1, 2};
+  REQUIRE(f.controller.startInTransfer(0x82, data));
+  // The host took the packet while the interrupt was masked: the driver reports
+  // the completion, and its event is not in the queue yet.
+  f.hardware.completionWaiting[0x82] = true;
+  CHECK_FALSE(f.controller.cancelInTransfer(0x82));
+  // The event comes when the interrupt runs, and it is delivered.
+  f.hardware.raise(inComplete(0x82));
+  f.controller.poll();
+  CHECK(f.events.log == std::vector<std::string>{"in 130"});
+}
+
+TEST_CASE("Ch32UsbDeviceController counts a completion that the hardware holds as stale on close") {
+  Fixture f;
+  f.openEp0();
+  REQUIRE(f.controller.openEndpoint({0x82, art::usb::EndpointType::Bulk, 64}));
+  REQUIRE(f.controller.openEndpoint({0x02, art::usb::EndpointType::Bulk, 64}));
+  const std::array<uint8_t, 1> data{1};
+  REQUIRE(f.controller.startInTransfer(0x82, data));
+  f.hardware.completionWaiting[0x82] = true;
+  f.controller.closeEndpoint(0x82);
+  // SET_INTERFACE opens the endpoint again, and the old completion arrives after that.
+  REQUIRE(f.controller.openEndpoint({0x82, art::usb::EndpointType::Bulk, 64}));
+  f.hardware.completionWaiting[0x82] = false;
+  f.hardware.raise(inComplete(0x82));
+  f.controller.poll();
+  CHECK(f.events.log.empty());
+}
+
+TEST_CASE("Ch32UsbDeviceController passes a reopen to the driver") {
+  Fixture f;
+  f.openEp0();
+  REQUIRE(f.controller.openEndpoint({0x82, art::usb::EndpointType::Bulk, 64}));
+  REQUIRE(f.controller.openEndpoint({0x02, art::usb::EndpointType::Bulk, 64}));
+  const size_t calls = f.hardware.openCalls.size();
+  // The driver resets the data toggle of an open endpoint that opens again (SET_INTERFACE), so the
+  // controller must call it and not keep the endpoint open.
+  f.controller.closeEndpoint(0x82);
+  REQUIRE(f.controller.openEndpoint({0x82, art::usb::EndpointType::Bulk, 64}));
+  CHECK(f.hardware.openCalls.size() == calls + 1);
+  CHECK(f.hardware.openCalls.back().address == 0x82);
+}
+
+TEST_CASE("Ch32UsbDeviceController refuses an OUT endpoint that its packet buffer cannot hold") {
+  Fixture f;
+  CHECK(f.controller.openEndpoint({0x02, art::usb::EndpointType::Bulk, 512}));
+  CHECK_FALSE(f.controller.openEndpoint({0x03, art::usb::EndpointType::Interrupt, 1024}));
+  // An IN endpoint has no such limit: the packet goes straight to the driver.
+  CHECK(f.controller.openEndpoint({0x83, art::usb::EndpointType::Interrupt, 1024}));
 }

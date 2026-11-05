@@ -128,10 +128,16 @@ public:
     return it != stalled.end() && it->second;
   }
 
-  void setNak(uint8_t ep) {
+  // The driver returns true when the hardware has completed a transfer of this
+  // direction of the endpoint and the interrupt has not reported it yet. A test
+  // sets completionWaiting[ep].
+  std::map<uint8_t, bool> completionWaiting;
+
+  bool setNak(uint8_t ep) {
     nakCalls.push_back(ep);
     valid[ep] = false;
     stalled[ep] = false;
+    return completionWaiting[ep];
   }
 
   // Test helper: the host completes a transaction on a VALID endpoint.
