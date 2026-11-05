@@ -3,7 +3,7 @@
 #include <cstdarg>
 #include <cstddef>
 
-#include <etl/circular_buffer.h>
+#include <utils/RingBuffer.h>
 
 #include <wch_device.h>
 
@@ -19,7 +19,7 @@ class SerialWritable : public Writable {
 
    protected:
    Usart usart;
-   etl::circular_buffer_ext<uint8_t> txBuffer;
+   RingBufferBase<uint8_t> &txBuffer;
 
    virtual art::expected<void, Writable::Error> flush(size_t count);
 
@@ -32,7 +32,7 @@ class SerialWritable : public Writable {
    SerialWritable &operator=(const SerialWritable &) = delete;
    SerialWritable &operator=(SerialWritable &&) = delete;
 
-   SerialWritable(USART_TypeDef *usartTypeDef, art::span<uint8_t> txBuffer);
+   SerialWritable(USART_TypeDef *usartTypeDef, RingBufferBase<uint8_t> &txBuffer);
 
    ~SerialWritable() = default;
 

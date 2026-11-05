@@ -6,8 +6,8 @@
 #include <peripherals/Usart.h>
 
 Serial::Serial()
-   : SerialWritable(USART1, txBuffer)
-   , SerialReadable(USART1, rxBuffer) {}
+   : SerialWritable(USART1, txRing)
+   , SerialReadable(USART1, rxRing) {}
 
 void Serial::initialize() {
    GpioPin dbgTx(GPIOD, 5);

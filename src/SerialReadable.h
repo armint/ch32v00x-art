@@ -4,7 +4,7 @@
 #include <utils/compat/span.h>
 #include <utils/compat/expected.h>
 
-#include <etl/circular_buffer.h>
+#include <utils/RingBuffer.h>
 
 #include <wch_device.h>
 
@@ -19,7 +19,7 @@ class SerialReadable : public virtual Readable {
 
    protected:
    Usart usart;
-   etl::circular_buffer_ext<uint8_t> rxBuffer;
+   RingBufferBase<uint8_t> &rxBuffer;
 
    public:
    using Readable::read;
@@ -30,7 +30,7 @@ class SerialReadable : public virtual Readable {
    SerialReadable &operator=(const SerialReadable &) = delete;
    SerialReadable &operator=(SerialReadable &&) = delete;
 
-   SerialReadable(USART_TypeDef *usartTypeDef, art::span<uint8_t> rxBuffer);
+   SerialReadable(USART_TypeDef *usartTypeDef, RingBufferBase<uint8_t> &rxBuffer);
 
    ~SerialReadable() = default;
 
