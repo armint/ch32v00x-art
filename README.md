@@ -22,13 +22,13 @@ The **CH32V00x-ArT** library provides reusable components that bridge the **libA
 ## Dependencies
 
 - **art-core**: Provides the base `Readable` and `Writable` interfaces and the `RingBuffer` for the serial buffers.
-- **ch32v00x-system**: Provides peripheral access to USART and GPIO.
+- **ch32v00x-system**: Provides peripheral access to USART and GPIO. Use a version with the names of `system-stm32` (`hw::GpioPin`, `getUptimeTicks()`), from commit [`5518c8c`](https://github.com/armint/ch32v00x-system/commit/5518c8ce1aba91a1280c69cf0d3bd8fdd686e6f5) on `main` (PR #1).
 
 ## Timestamps
 
 `timestamp_in_ms()` returns the time of the SysTick (system tick timer) in `ch32v00x-system`. This is the millisecond clock that libArT uses for timeouts.
 
-The application must start the SysTick with `initSysTick(SystemCoreClock / 1000)`, which gives a 1 ms tick. Without this call, the tick does not advance and libArT timeouts never expire.
+The application must start the SysTick with `SysTick_Config(SystemCoreClock / 1000)`, which gives a 1 ms tick. Without this call, the tick does not advance and libArT timeouts never expire.
 
 ## Usage in CMake
 
