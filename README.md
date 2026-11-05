@@ -20,6 +20,8 @@ The **CH32V00x-ArT** library provides reusable components that bridge the **libA
 - `BlockingSerialWritable`: Simple polling-based UART transmission.
 - `Serial`: Combines buffered reading and writing.
 
+`DebugSerial`, `BasicDebugSerial` and `Serial` use USART1 at 115200 baud, without AFIO remap. The pins come from `Usart1Pins.h`: TX PD5 and RX PD6 on CH32V00X, TX PA9 and RX PA10 on CH32V20X and CH32V30X.
+
 ## Dependencies
 
 - **art-core**: Provides the base `Readable` and `Writable` interfaces and the `RingBuffer` for the serial buffers.

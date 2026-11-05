@@ -18,7 +18,7 @@
 class SerialWritable : public Writable {
 
    protected:
-   Usart usart;
+   hw::Usart usart;
    RingBufferBase<uint8_t> &txBuffer;
 
    virtual art::expected<void, Writable::Error> flush(size_t count);

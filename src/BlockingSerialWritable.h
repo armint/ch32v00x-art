@@ -7,7 +7,7 @@
 
 class BlockingSerialWritable : public Writable {
    protected:
-   Usart usart;
+   hw::Usart usart;
 
    public:
    using Writable::write;
