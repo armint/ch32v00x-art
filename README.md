@@ -39,3 +39,7 @@ This library is intended to be used as a dependency in the `ch32v00x-examples` p
 add_subdirectory(dependencies/ch32v00x-art)
 target_link_libraries(${PROJECT_NAME} PRIVATE ch32v00x-art)
 ```
+
+## License
+
+ch32v00x-art uses the MIT license. See [LICENSE](LICENSE).
