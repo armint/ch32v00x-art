@@ -10,6 +10,7 @@ The **CH32V00x-ArT** library provides reusable components that bridge the **libA
     - `DebugSerial`: Buffered, interrupt-driven serial output for logging.
     - `BasicDebugSerial`: Minimal, blocking serial output for early boot or low-resource scenarios.
 - **Full Duplex Support**: `Serial` for simultaneous transmit and receive.
+- **USB device controller**: `Ch32UsbDeviceController` runs the libArT USB stack on the USBHS of the CH32V30X (high speed or full speed).
 
 ## Core Components
 
