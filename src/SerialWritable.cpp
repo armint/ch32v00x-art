@@ -8,7 +8,7 @@ SerialWritable::SerialWritable(USART_TypeDef *usartTypeDef, std::span<uint8_t> t
 
 
 void SerialWritable::handleInterrupt() {
-   if(usart.isTxEmpty() && usart.isTxEmptyInterruptEnabled()) {
+   if(usart.isTxRegisterEmpty() && usart.isTxEmptyInterruptEnabled()) {
       if(!txBuffer.empty()) {
          usart.setData(txBuffer.front());
          txBuffer.pop();
@@ -35,7 +35,7 @@ std::expected<void, Writable::Error> SerialWritable::flush(size_t count) {
          break;
       }
 
-      if(usart.isTxEmpty()) {
+      if(usart.isTxRegisterEmpty()) {
          Interrupt::CriticalSection ics;
          usart.setData(txBuffer.front());
          txBuffer.pop();

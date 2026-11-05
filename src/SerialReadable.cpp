@@ -8,7 +8,7 @@ SerialReadable::SerialReadable(USART_TypeDef *usartTypeDef, std::span<uint8_t> r
 }
 
 void SerialReadable::handleInterrupt() {
-   if(usart.isRxNotEmpty() && usart.isRxNotEmptyInterruptEnabled()) {
+   if(usart.isRxRegisterNotEmpty() && usart.isRxNotEmptyInterruptEnabled()) {
       uint8_t data = usart.getData();
       if(!rxBuffer.full()) {
          rxBuffer.push(data);
