@@ -22,7 +22,7 @@ The **CH32V00x-ArT** library provides reusable components that bridge the **libA
 ## Dependencies
 
 - **art-core**: Provides the base `Readable` and `Writable` interfaces and the `RingBuffer` for the serial buffers.
-- **ch32v00x-system**: Provides peripheral access to USART and GPIO. Use a version with the names of `system-stm32` (`hw::GpioPin`, `getUptimeTicks()`), from [MR !17](https://gitlab.vandertogt.org/riscv/ch32v00x-system/-/merge_requests/17) on.
+- **ch32v00x-system**: Provides peripheral access to USART and GPIO. Use a version with the names of `system-stm32` (`hw::GpioPin`, `getUptimeTicks()`), from [PR #1](https://github.com/armint/ch32v00x-system/pull/1) on.
 
 ## Timestamps
 
