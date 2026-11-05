@@ -225,7 +225,8 @@ bool Ch32UsbDeviceController::openEndpoint(const art::usb::EndpointConfig &confi
       openOut_ |= kEndpoint0Bit;
       return true;
    }
-   if(!device_.openEndpoint(config.address, toHardware(config.type), config.maxPacketSize)) {
+   const bool doubleBuffered = config.address == doubleBufferedOut_ && config.type == art::usb::EndpointType::Bulk;
+   if(!device_.openEndpoint(config.address, toHardware(config.type), config.maxPacketSize, doubleBuffered)) {
       return false;
    }
    (isInEndpoint(config.address) ? openIn_ : openOut_) |= static_cast<uint16_t>(1u << number);

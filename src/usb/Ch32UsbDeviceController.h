@@ -36,7 +36,9 @@ static_assert(std::is_same<art::span<const uint8_t>, hw::span<const uint8_t>>::v
  * events that were queued before a bus reset or before closeEndpoint().
  *
  * Differences from the STM32 class:
- *  - No double-buffered OUT endpoint: hw::UsbDevice of the USBHS has none.
+ *  - Double-buffered OUT: setDoubleBufferedOut() makes the controller open one bulk OUT endpoint with two buffers
+ *    (hw::UsbDevice). The protocol layer sees no difference: one packet per armOutTransfer(). The IN endpoint
+ *    with the same number cannot open (the USBHS uses its buffer register as the second OUT buffer).
  *  - 16 endpoint numbers, and packets up to 512 bytes (bulk) or 1024 bytes (interrupt). The speed is the speed
  *    of the host: use speed() after the first bus reset to pick the descriptor set.
  *  - The D+ pull-up is internal (connect() and disconnect() only set a bit).
@@ -76,6 +78,15 @@ class Ch32UsbDeviceController final : public art::usb::DeviceController {
    /// Gives the queued events to the event handler. Call it from the main loop.
    void poll();
 
+   /**
+    * @brief Opens the bulk OUT endpoint endpointAddress double-buffered when the protocol layer opens it. Call it
+    * before begin(). The IN endpoint with the same number cannot open. Only one endpoint; a second call replaces
+    * the first.
+    */
+   void setDoubleBufferedOut(uint8_t endpointAddress) {
+      doubleBufferedOut_ = endpointAddress;
+   }
+
    /// The speed that the host selected. Valid after the first bus reset.
    [[nodiscard]] hw::UsbDevice::Speed speed() const {
       return device_.speed();
@@ -109,6 +120,8 @@ class Ch32UsbDeviceController final : public art::usb::DeviceController {
    // Open endpoints as the protocol layer sees them, one bit per endpoint number. Main loop only.
    uint16_t openIn_ = 0u;
    uint16_t openOut_ = 0u;
+   // The OUT endpoint of setDoubleBufferedOut(), or kNoAddress
+   uint8_t doubleBufferedOut_ = kNoAddress;
 
    // Shared with the interrupt. Only loads and stores (no atomic read-modify-write on the QingKe V4F). The
    // *Queued_ counters are written by the interrupt callback, the *Delivered_ counters by poll(). A pair differs
