@@ -21,7 +21,7 @@ class SerialWritable : public Writable {
    Usart usart;
    etl::circular_buffer_ext<uint8_t> txBuffer;
 
-   virtual std::expected<void, Writable::Error> flush(size_t count);
+   virtual art::expected<void, Writable::Error> flush(size_t count);
 
    public:
    using Writable::write;
@@ -32,12 +32,12 @@ class SerialWritable : public Writable {
    SerialWritable &operator=(const SerialWritable &) = delete;
    SerialWritable &operator=(SerialWritable &&) = delete;
 
-   SerialWritable(USART_TypeDef *usartTypeDef, std::span<uint8_t> txBuffer);
+   SerialWritable(USART_TypeDef *usartTypeDef, art::span<uint8_t> txBuffer);
 
    ~SerialWritable() = default;
 
-   virtual std::expected<size_t, Writable::Error> write(std::span<const uint8_t> data) override;
-   virtual std::expected<void, Writable::Error> flush() override;
+   virtual art::expected<size_t, Writable::Error> write(art::span<const uint8_t> data) override;
+   virtual art::expected<void, Writable::Error> flush() override;
 
    void handleInterrupt();
 };

@@ -1,7 +1,7 @@
 #include "SerialWritable.h"
 #include <utils/Interrupt.h>
 
-SerialWritable::SerialWritable(USART_TypeDef *usartTypeDef, std::span<uint8_t> txBuffer)
+SerialWritable::SerialWritable(USART_TypeDef *usartTypeDef, art::span<uint8_t> txBuffer)
    : usart(usartTypeDef)
    , txBuffer(txBuffer.data(), txBuffer.size()) {
 }
@@ -20,7 +20,7 @@ void SerialWritable::handleInterrupt() {
 }
 
 
-std::expected<void, Writable::Error> SerialWritable::flush(size_t count) {
+art::expected<void, Writable::Error> SerialWritable::flush(size_t count) {
    usart.disableTxEmptyInterrupt();
    utils::Timeout timeout(5000);
    size_t flushed = 0;
@@ -48,18 +48,18 @@ std::expected<void, Writable::Error> SerialWritable::flush(size_t count) {
    }
 
    if(timeout.hasExpired()) {
-      return std::unexpected(CouldNotWrite);
+      return art::unexpected(CouldNotWrite);
    }
    return {};
 }
 
 
-std::expected<void, Writable::Error> SerialWritable::flush() {
+art::expected<void, Writable::Error> SerialWritable::flush() {
    return flush(txBuffer.size());
 }
 
 
-std::expected<size_t, Writable::Error> SerialWritable::write(std::span<const uint8_t> data) {
+art::expected<size_t, Writable::Error> SerialWritable::write(art::span<const uint8_t> data) {
    for(size_t i = 0; i < data.size(); i++) {
       uint8_t c = data[i];
       bool full;
@@ -70,7 +70,7 @@ std::expected<size_t, Writable::Error> SerialWritable::write(std::span<const uin
       if(full) {
          auto res = flush(1);
          if(!res) {
-            return std::unexpected(res.error());
+            return art::unexpected(res.error());
          }
       }
       Interrupt::CriticalSection ics;
