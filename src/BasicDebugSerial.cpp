@@ -5,7 +5,7 @@
 #include "peripherals/GpioPin.h"
 
 BasicDebugSerial::BasicDebugSerial()
-   : BasicSerialWritable(USART1) {}
+   : BlockingSerialWritable(USART1) {}
 
 void BasicDebugSerial::initialize() {
    GpioPin dbgTx(GPIOD, 5);

@@ -1,15 +1,15 @@
 #include <wch_device.h>
 
-#include "FullDuplexSerial.h"
+#include "Serial.h"
 
 #include <peripherals/GpioPin.h>
 #include <peripherals/Usart.h>
 
-FullDuplexSerial::FullDuplexSerial()
+Serial::Serial()
    : SerialWritable(USART1, txBuffer)
    , SerialReadable(USART1, rxBuffer) {}
 
-void FullDuplexSerial::initialize() {
+void Serial::initialize() {
    GpioPin dbgTx(GPIOD, 5);
    dbgTx.configureOutput(GpioPin::OutputMode::PushPull, GpioPin::OutputSpeed::Output10MHz, true);
 
@@ -26,9 +26,9 @@ void FullDuplexSerial::initialize() {
    NVIC_EnableIRQ(USART1_IRQn);
 }
 
-void FullDuplexSerial::handleInterrupt() {
+void Serial::handleInterrupt() {
    SerialWritable::handleInterrupt();
    SerialReadable::handleInterrupt();
 }
 
-FullDuplexSerial fullDuplexSerial;
+Serial serial;
