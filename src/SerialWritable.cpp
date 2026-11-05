@@ -1,5 +1,4 @@
 #include "SerialWritable.h"
-#include <utils/Interrupt.h>
 
 SerialWritable::SerialWritable(USART_TypeDef *usartTypeDef, RingBufferBase<uint8_t> &txBuffer)
    : usart(usartTypeDef)

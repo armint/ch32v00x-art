@@ -6,7 +6,7 @@
 #include <peripherals/Usart.h>
 
 DebugSerial::DebugSerial()
-   : SerialWritable(USART1, txBuffer) {}
+   : SerialWritable(USART1, txRing) {}
 
 void DebugSerial::initialize() {
    GpioPin dbgTx(GPIOD, 5);
