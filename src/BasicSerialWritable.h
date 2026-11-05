@@ -22,6 +22,6 @@ class BasicSerialWritable : public Writable {
 
    ~BasicSerialWritable() override = default;
 
-   std::expected<size_t, Writable::Error> write(std::span<const uint8_t> data) override;
-   std::expected<void, Writable::Error> flush() override;
+   art::expected<size_t, Writable::Error> write(art::span<const uint8_t> data) override;
+   art::expected<void, Writable::Error> flush() override;
 };

@@ -27,7 +27,7 @@ target_compile_definitions(ch32v00x-art
         PUBLIC $<TARGET_PROPERTY:ch32v00x-system,INTERFACE_COMPILE_DEFINITIONS>
 )
 
-target_compile_features(ch32v00x-art PUBLIC cxx_std_23)
+target_compile_features(ch32v00x-art PUBLIC cxx_std_17)
 
 if (TARGET art-build-config)
     target_link_libraries(ch32v00x-art PRIVATE $<BUILD_INTERFACE:art-build-config>)

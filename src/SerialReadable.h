@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <span>
-#include <expected>
+#include <utils/compat/span.h>
+#include <utils/compat/expected.h>
 
 #include <etl/circular_buffer.h>
 
@@ -30,11 +30,11 @@ class SerialReadable : public virtual Readable {
    SerialReadable &operator=(const SerialReadable &) = delete;
    SerialReadable &operator=(SerialReadable &&) = delete;
 
-   SerialReadable(USART_TypeDef *usartTypeDef, std::span<uint8_t> rxBuffer);
+   SerialReadable(USART_TypeDef *usartTypeDef, art::span<uint8_t> rxBuffer);
 
    ~SerialReadable() = default;
 
-   virtual std::expected<char, Error> read() override;
+   virtual art::expected<char, Error> read() override;
    virtual bool available() override;
 
    void handleInterrupt();

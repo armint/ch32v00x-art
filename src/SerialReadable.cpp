@@ -2,13 +2,13 @@
 #include <utils/Interrupt.h>
 #include <utils/Timeout.h>
 
-SerialReadable::SerialReadable(USART_TypeDef *usartTypeDef, std::span<uint8_t> rxBuffer)
+SerialReadable::SerialReadable(USART_TypeDef *usartTypeDef, art::span<uint8_t> rxBuffer)
    : usart(usartTypeDef)
    , rxBuffer(rxBuffer.data(), rxBuffer.size()) {
 }
 
 void SerialReadable::handleInterrupt() {
-   if(usart.isRxNotEmpty() && usart.isRxNotEmptyInterruptEnabled()) {
+   if(usart.isRxRegisterNotEmpty() && usart.isRxNotEmptyInterruptEnabled()) {
       uint8_t data = usart.getData();
       if(!rxBuffer.full()) {
          rxBuffer.push(data);
@@ -16,7 +16,7 @@ void SerialReadable::handleInterrupt() {
    }
 }
 
-std::expected<char, Readable::Error> SerialReadable::read() {
+art::expected<char, Readable::Error> SerialReadable::read() {
    utils::Timeout timeout(timeout_);
    while(true) {
       bool empty;
@@ -33,7 +33,7 @@ std::expected<char, Readable::Error> SerialReadable::read() {
       }
 
       if(timeout_ != 0 && timeout.hasExpired()) {
-         return std::unexpected(Timeout);
+         return art::unexpected(Timeout);
       }
    }
 }
