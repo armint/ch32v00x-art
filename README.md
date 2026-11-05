@@ -9,15 +9,15 @@ The **CH32V00x-ArT** library provides reusable components that bridge the **libA
 - **Debug Utilities**:
     - `DebugSerial`: Buffered, interrupt-driven serial output for logging.
     - `BasicDebugSerial`: Minimal, blocking serial output for early boot or low-resource scenarios.
-- **Full Duplex Support**: `FullDuplexSerial` for simultaneous transmit and receive.
+- **Full Duplex Support**: `Serial` for simultaneous transmit and receive.
 
 ## Core Components
 
 - `SerialWritable`: Buffered UART transmission using interrupts.
 - `SerialReadable`: Buffered UART reception using interrupts.
 - `DebugSerial`: High-level wrapper for serial debugging.
-- `BasicSerialWritable`: Simple polling-based UART transmission.
-- `FullDuplexSerial`: Combines buffered reading and writing.
+- `BlockingSerialWritable`: Simple polling-based UART transmission.
+- `Serial`: Combines buffered reading and writing.
 
 ## Dependencies
 

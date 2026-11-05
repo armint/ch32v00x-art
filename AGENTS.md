@@ -6,7 +6,7 @@
 ## Key Components
 - **Serial Streams**: `SerialWritable` and `SerialReadable` provide interrupt-driven, buffered I/O.
 - **Debug Serial**: `DebugSerial` and `BasicDebugSerial` are convenience classes for system logging.
-- **Full Duplex**: `FullDuplexSerial` integrates both reading and writing.
+- **Full Duplex**: `Serial` integrates both reading and writing.
 
 ## Guidelines
 - **Dependencies**: When adding new components, ensure they depend on both `libArT` (for interfaces) and `ch32v00x-system` (for hardware). The `embedded template library` (ETL) is a dependency and should be considered before creating similar classes.

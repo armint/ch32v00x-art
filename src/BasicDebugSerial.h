@@ -1,9 +1,9 @@
 
 #pragma once
-#include "BasicSerialWritable.h"
+#include "BlockingSerialWritable.h"
 
 
-class BasicDebugSerial : public BasicSerialWritable {
+class BasicDebugSerial : public BlockingSerialWritable {
    public:
    using Writable::write;
    BasicDebugSerial();
