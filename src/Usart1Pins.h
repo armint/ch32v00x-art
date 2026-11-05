@@ -11,11 +11,13 @@ inline hw::GpioPin usart1TxPin() {
 inline hw::GpioPin usart1RxPin() {
    return { GPIOD, 6 };
 }
-#else
+#elif defined(CH32V20x_D8W) || defined(CH32V20x_D8) || defined(CH32V20x_D6) || defined(CH32V30x_D8C)
 inline hw::GpioPin usart1TxPin() {
    return { GPIOA, 9 };
 }
 inline hw::GpioPin usart1RxPin() {
    return { GPIOA, 10 };
 }
+#else
+#error "Usart1Pins.h: no USART1 pins for this device"
 #endif
