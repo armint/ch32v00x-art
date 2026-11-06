@@ -43,8 +43,8 @@ static_assert(std::is_same<art::span<const uint8_t>, hw::span<const uint8_t>>::v
  *    of the host: use speed() after the first bus reset to pick the descriptor set.
  *  - The D+ pull-up is internal (connect() and disconnect() only set a bit).
  *  - No repeated NAK write: the driver keeps the data toggle in software and repairs a flip that a NAK or STALL
- *    write undid. setNak() of the driver returns true when the hardware has completed a transfer that the
- *    interrupt has not queued yet; closeEndpoint() and cancelInTransfer() use that.
+ *    write undid. setNak() of the driver reports a transfer that the hardware has completed and the
+ *    interrupt has not handled yet, before it returns; closeEndpoint() and cancelInTransfer() count the queue after it.
  *  - An OUT endpoint has at most 512 bytes per packet (hw::UsbDevice::BulkMaxPacketSize): the packet is copied to
  *    a buffer of that size. openEndpoint() refuses a larger OUT endpoint (an interrupt endpoint up to 1024 bytes).
  *

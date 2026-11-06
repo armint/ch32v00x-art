@@ -726,30 +726,31 @@ TEST_CASE("Ch32UsbDeviceController cancel does not claim a packet that the hardw
   const std::array<uint8_t, 2> data{1, 2};
   REQUIRE(f.controller.startInTransfer(0x82, data));
   // The host took the packet while the interrupt was masked: the driver reports
-  // the completion, and its event is not in the queue yet.
+  // the completion inside setNak(), so its event is in the queue.
   f.hardware.completionWaiting[0x82] = true;
   CHECK_FALSE(f.controller.cancelInTransfer(0x82));
-  // The event comes when the interrupt runs, and it is delivered.
-  f.hardware.raise(inComplete(0x82));
   f.controller.poll();
   CHECK(f.events.log == std::vector<std::string>{"in 130"});
 }
 
-TEST_CASE("Ch32UsbDeviceController counts a completion that the hardware holds as stale on close") {
+TEST_CASE("Ch32UsbDeviceController drops the completion that setNak() reports on close, and not the next one") {
   Fixture f;
   f.openEp0();
   REQUIRE(f.controller.openEndpoint({0x82, art::usb::EndpointType::Bulk, 64}));
   REQUIRE(f.controller.openEndpoint({0x02, art::usb::EndpointType::Bulk, 64}));
   const std::array<uint8_t, 1> data{1};
   REQUIRE(f.controller.startInTransfer(0x82, data));
+  // The interrupt runs when setNak() unmasks it: the event is in the queue when it returns.
   f.hardware.completionWaiting[0x82] = true;
   f.controller.closeEndpoint(0x82);
-  // SET_INTERFACE opens the endpoint again, and the old completion arrives after that.
   REQUIRE(f.controller.openEndpoint({0x82, art::usb::EndpointType::Bulk, 64}));
-  f.hardware.completionWaiting[0x82] = false;
-  f.hardware.raise(inComplete(0x82));
   f.controller.poll();
   CHECK(f.events.log.empty());
+  // The first packet of the new alternate setting is delivered.
+  REQUIRE(f.controller.startInTransfer(0x82, data));
+  f.hardware.raise(inComplete(0x82));
+  f.controller.poll();
+  CHECK(f.events.log == std::vector<std::string>{"in 130"});
 }
 
 TEST_CASE("Ch32UsbDeviceController passes a reopen to the driver") {
@@ -758,8 +759,8 @@ TEST_CASE("Ch32UsbDeviceController passes a reopen to the driver") {
   REQUIRE(f.controller.openEndpoint({0x82, art::usb::EndpointType::Bulk, 64}));
   REQUIRE(f.controller.openEndpoint({0x02, art::usb::EndpointType::Bulk, 64}));
   const size_t calls = f.hardware.openCalls.size();
-  // The driver resets the data toggle of an open endpoint that opens again (SET_INTERFACE), so the
-  // controller must call it and not keep the endpoint open.
+  // Guard only: the controller must call the driver on a reopen and not keep the endpoint open. The DATA0
+  // reset itself is tested in the driver (ch32v00x-system, test_usb_v307.cpp).
   f.controller.closeEndpoint(0x82);
   REQUIRE(f.controller.openEndpoint({0x82, art::usb::EndpointType::Bulk, 64}));
   CHECK(f.hardware.openCalls.size() == calls + 1);

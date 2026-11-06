@@ -128,16 +128,20 @@ public:
     return it != stalled.end() && it->second;
   }
 
-  // The driver returns true when the hardware has completed a transfer of this
-  // direction of the endpoint and the interrupt has not reported it yet. A test
-  // sets completionWaiting[ep].
+  // The driver reports a transfer that the hardware has completed and the interrupt
+  // has not handled yet inside setNak(). A test sets completionWaiting[ep].
   std::map<uint8_t, bool> completionWaiting;
 
-  bool setNak(uint8_t ep) {
+  void setNak(uint8_t ep) {
     nakCalls.push_back(ep);
     valid[ep] = false;
     stalled[ep] = false;
-    return completionWaiting[ep];
+    if (completionWaiting[ep]) {
+      completionWaiting[ep] = false;
+      const bool in = (ep & 0x80) != 0;
+      raise(usb::Event{in ? usb::EventType::InComplete : usb::EventType::Out,
+                       in ? ep : static_cast<uint8_t>(ep & 0x0F), 0, {}});
+    }
   }
 
   // Test helper: the host completes a transaction on a VALID endpoint.

@@ -252,12 +252,11 @@ void Ch32UsbDeviceController::closeEndpoint(uint8_t endpointAddress) {
       return;
    }
    (isInEndpoint(endpointAddress) ? openIn_ : openOut_) &= static_cast<uint16_t>(~(1u << number));
-   // NAK first, then count: setNak() tells if the hardware has completed a transfer that the interrupt has not
-   // queued yet. That event comes later and belongs to the closed endpoint too. The driver sets DATA0 again when
-   // the endpoint opens again (SET_INTERFACE).
-   const bool completionWaits = device_.setNak(endpointAddress);
-   staleEvents_[index] = static_cast<uint8_t>(packetsQueued_[index].load(std::memory_order_acquire) - packetsDelivered_[index] +
-                                              (completionWaits ? 1u : 0u));
+   // NAK first, then count: the driver reports a completed transfer that the interrupt has not handled yet
+   // inside setNak(), so its event is in the queue when setNak() returns, and it is stale too. The driver sets
+   // DATA0 again when the endpoint opens again (SET_INTERFACE).
+   device_.setNak(endpointAddress);
+   staleEvents_[index] = static_cast<uint8_t>(packetsQueued_[index].load(std::memory_order_acquire) - packetsDelivered_[index]);
    if(((openIn_ | openOut_) & static_cast<uint16_t>(~kEndpoint0Bit)) == 0u) {
       device_.closeAllEndpoints();
    }
@@ -288,15 +287,16 @@ bool Ch32UsbDeviceController::cancelInTransfer(uint8_t endpointAddress) {
    }
    const size_t index = slot(endpointAddress);
    // A NAK write would end the STALL. A stalled endpoint sends nothing, so only the queue decides.
-   // setNak() tells if the hardware has completed the packet and the interrupt has not queued the event yet. The
-   // interrupt runs when setNak() unmasks it, but nothing here orders that before the counter load, so the
-   // answer of the hardware counts. A flip of the data toggle that the write undid is repaired by the driver.
-   const bool completionWaits = !device_.isStalled(endpointAddress) && device_.setNak(endpointAddress);
+   // The driver reports a packet that the hardware has completed inside setNak(), so its event is in the queue
+   // when setNak() returns. A flip of the data toggle that the write undid is repaired by the driver.
+   if(!device_.isStalled(endpointAddress)) {
+      device_.setNak(endpointAddress);
+   }
    // An InComplete event that waits in the queue belongs to a packet that
    // the host acknowledged: it is still delivered. Events that
    // closeEndpoint() made stale are dropped, so they do not count.
    const auto waiting = static_cast<uint8_t>(packetsQueued_[index].load(std::memory_order_acquire) - packetsDelivered_[index]);
-   return !completionWaits && waiting == staleEvents_[index];
+   return waiting == staleEvents_[index];
 }
 
 void Ch32UsbDeviceController::armOutTransfer(uint8_t endpointAddress) {
