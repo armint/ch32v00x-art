@@ -10,6 +10,7 @@ The **CH32V00x-ArT** library provides reusable components that bridge the **libA
     - `DebugSerial`: Buffered, interrupt-driven serial output for logging.
     - `BasicDebugSerial`: Minimal, blocking serial output for early boot or low-resource scenarios.
 - **Full Duplex Support**: `Serial` for simultaneous transmit and receive.
+- **USB device controller**: `Ch32UsbDeviceController` runs the libArT USB stack on the USBHS of the CH32V30X (high speed or full speed).
 
 ## Core Components
 
@@ -44,3 +45,13 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ch32v00x-art)
 ## License
 
 ch32v00x-art uses the MIT license. See [LICENSE](LICENSE).
+
+## Host tests
+
+`tests/` has the host tests of `Ch32UsbDeviceController`. They use a fake `hw::UsbDevice` and the real libArT USB stack. Set `LIBART_DIR` to a libArT checkout:
+
+```
+cmake -S tests -B build-host -DLIBART_DIR=<libArT checkout>
+cmake --build build-host
+ctest --test-dir build-host --output-on-failure
+```

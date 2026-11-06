@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Host tests of Ch32UsbDeviceController (tests/): a fake hw::UsbDevice and the real libArT USB stack.
+  host-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+        with:
+          repository: armint/libart
+          ref: a6563f0fba8cd506759a9c41331ffeddb330fcc2 # the pin of openmupp-firmware
+          path: libart
+      - name: Configure
+        run: cmake -S tests -B build-host -DLIBART_DIR="$GITHUB_WORKSPACE/libart"
+      - name: Build
+        run: cmake --build build-host -j"$(nproc)"
+      - name: Test
+        run: ctest --test-dir build-host --output-on-failure
