@@ -18,7 +18,7 @@ void Serial::initialize() {
    const hw::GpioPin dbgRx = usart1RxPin();
    dbgRx.configure(hw::GpioPin::Mode::Input);
 
-   SerialWritable::usart.configure(115200, USARTParity::None, UsartStopBits::StopBits_1);
+   SerialWritable::usart.configure(115200, hw::Usart::Parity::None, hw::Usart::StopBits::StopBits_1);
    SerialWritable::usart.enableTx();
    SerialWritable::usart.enableRx();
    SerialWritable::usart.enable();

@@ -18,7 +18,7 @@
 class SerialReadable : public virtual Readable {
 
    protected:
-   Usart usart;
+   hw::Usart usart;
    RingBufferBase<uint8_t> &rxBuffer;
 
    public:
