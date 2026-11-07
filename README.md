@@ -17,7 +17,7 @@ The **CH32V00x-ArT** library provides reusable components that bridge the **libA
 - `SerialWritable`: Buffered UART transmission using interrupts.
 - `SerialReadable`: Buffered UART reception using interrupts.
 - `DebugSerial`: High-level wrapper for serial debugging.
-- `BlockingSerialWritable`: Simple polling-based UART transmission.
+- `BlockingSerialWritable`: Simple polling-based UART transmission. `flush()` returns when the last byte is fully sent (TXE and TC set).
 - `Serial`: Combines buffered reading and writing.
 
 The names agree with [libart-stm32](https://github.com/armint/libart-stm32) where possible. A class that does the same job has the same name. A class that does a different job has a different name.
