@@ -13,6 +13,10 @@ art::expected<size_t, Writable::Error> BlockingSerialWritable::write(art::span<c
    return data.size();
 }
 
+// Returns when the last stop bit is on the line. Call it before a USART clock change (a flash
+// operation above 120 MHz halves the APB clocks) or before the USART is switched off.
 art::expected<void, Writable::Error> BlockingSerialWritable::flush() {
+   while(!usart.isTxRegisterEmpty() || !usart.isTransferComplete()) {
+   }
    return {};
 }
