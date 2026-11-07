@@ -4,9 +4,9 @@
 #include <cstdint>
 
 /**
- * Stand-in for system-stm32's peripherals/UsbDeviceTypes.h with the same
- * types. The real header has no hardware dependency, but the host tests do
- * not check out system-stm32. The cross build uses the real header.
+ * Stand-in for peripherals/UsbDeviceTypes.h of the USB device driver, with
+ * the same types. The real header has no hardware dependency, but the host
+ * tests do not check out the driver. The cross build uses the real header.
  */
 namespace hw::usb {
 

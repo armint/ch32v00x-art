@@ -25,17 +25,16 @@ static_assert(std::is_same<art::span<const uint8_t>, hw::span<const uint8_t>>::v
 /**
  * @brief libArT's usb::DeviceController on ch32v00x-system's hw::UsbDevice (USBHS of the CH32V30x).
  *
- * The counterpart of Stm32UsbDeviceController in libart-stm32, with the same threading model: the USB interrupt
- * only queues the events of hw::UsbDevice, and poll() gives them to the event handler (usb::Device) in the main
- * loop. The queue is a single-producer, single-consumer ring buffer. An OUT packet stays in the endpoint buffer
- * until poll() delivers it, because the endpoint NAKs until it is armed again.
+ * Threading model: the USB interrupt only queues the events of hw::UsbDevice, and poll() gives them to the event
+ * handler (usb::Device) in the main loop. The queue is a single-producer, single-consumer ring buffer. An OUT packet
+ * stays in the endpoint buffer until poll() delivers it, because the endpoint NAKs until it is armed again.
  *
- * The same work runs in the interrupt as in the STM32 class: SET_ADDRESS is applied when the host acknowledges the
- * status stage on EP0 IN, a SETUP packet or a bus reset drops a stored address, and the controller ignores the
- * EP0 calls of an aborted transfer while a newer SETUP or a reset waits in the queue. poll() drops the packet
- * events that were queued before a bus reset or before closeEndpoint().
+ * The interrupt does this work: SET_ADDRESS is applied when the host acknowledges the status stage on EP0 IN, a
+ * SETUP packet or a bus reset drops a stored address, and the controller ignores the EP0 calls of an aborted
+ * transfer while a newer SETUP or a reset waits in the queue. poll() drops the packet events that were queued
+ * before a bus reset or before closeEndpoint().
  *
- * Differences from the STM32 class:
+ * Controller details:
  *  - Double-buffered OUT: setDoubleBufferedOut() makes the controller open one bulk OUT endpoint with two buffers
  *    (hw::UsbDevice). The protocol layer sees no difference: one packet per armOutTransfer(). The IN endpoint
  *    with the same number cannot open (the USBHS uses its buffer register as the second OUT buffer).
