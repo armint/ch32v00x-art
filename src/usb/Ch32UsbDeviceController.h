@@ -103,8 +103,8 @@ class Ch32UsbDeviceController final : public art::usb::DeviceController {
    void setEventHandler(art::usb::ControllerEvents *handler) override;
    void connect() override;
    void disconnect() override;
-   /// The speed of the hardware (speed()). usb::Device reads it when poll() delivers a bus reset; the interrupt has
-   /// handled the reset then, so the speed of that reset is set.
+   /// The speed of the hardware (speed()). The USBHS knows it only after the chirp handshake at the end of the
+   /// reset, so usb::Device reads it again for the SETUP packets after the reset.
    [[nodiscard]] bool isHighSpeed() const override {
       return speed() == hw::UsbDevice::Speed::High;
    }
