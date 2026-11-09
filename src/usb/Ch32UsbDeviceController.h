@@ -39,7 +39,7 @@ static_assert(std::is_same<art::span<const uint8_t>, hw::span<const uint8_t>>::v
  *    (hw::UsbDevice). The protocol layer sees no difference: one packet per armOutTransfer(). The IN endpoint
  *    with the same number cannot open (the USBHS uses its buffer register as the second OUT buffer).
  *  - 16 endpoint numbers, and packets up to 512 bytes (bulk) or 1024 bytes (interrupt). The speed is the speed
- *    of the host. isHighSpeed() reports it to usb::Device, which picks the descriptor set at each bus reset.
+ *    of the host. isHighSpeed() reports it to usb::Device, which picks the descriptor set before SET_CONFIGURATION.
  *  - The D+ pull-up is internal (connect() and disconnect() only set a bit).
  *  - No repeated NAK write: the driver keeps the data toggle in software and repairs a flip that a NAK or STALL
  *    write undid. setNak() of the driver reports a transfer that the hardware has completed and the
