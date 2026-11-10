@@ -715,8 +715,10 @@ TEST_CASE("Ch32UsbDeviceController handles endpoint numbers up to 15") {
 TEST_CASE("Ch32UsbDeviceController reports the speed of the hardware") {
   Fixture f;
   CHECK(f.controller.speed() == hw::UsbDevice::Speed::High);
+  CHECK(f.controller.isHighSpeed());
   f.hardware.speed_ = hw::UsbDevice::Speed::Full;
   CHECK(f.controller.speed() == hw::UsbDevice::Speed::Full);
+  CHECK_FALSE(f.controller.isHighSpeed());
 }
 
 TEST_CASE("Ch32UsbDeviceController cancel does not claim a packet that the hardware completed") {

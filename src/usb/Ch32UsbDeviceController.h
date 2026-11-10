@@ -39,7 +39,7 @@ static_assert(std::is_same<art::span<const uint8_t>, hw::span<const uint8_t>>::v
  *    (hw::UsbDevice). The protocol layer sees no difference: one packet per armOutTransfer(). The IN endpoint
  *    with the same number cannot open (the USBHS uses its buffer register as the second OUT buffer).
  *  - 16 endpoint numbers, and packets up to 512 bytes (bulk) or 1024 bytes (interrupt). The speed is the speed
- *    of the host: use speed() after the first bus reset to pick the descriptor set.
+ *    of the host. isHighSpeed() reports it to usb::Device, which picks the descriptor set before SET_CONFIGURATION.
  *  - The D+ pull-up is internal (connect() and disconnect() only set a bit).
  *  - No repeated NAK write: the driver keeps the data toggle in software and repairs a flip that a NAK or STALL
  *    write undid. setNak() of the driver reports a transfer that the hardware has completed and the
@@ -103,6 +103,11 @@ class Ch32UsbDeviceController final : public art::usb::DeviceController {
    void setEventHandler(art::usb::ControllerEvents *handler) override;
    void connect() override;
    void disconnect() override;
+   /// The speed of the hardware (speed()). The USBHS knows it only after the chirp handshake at the end of the
+   /// reset, so usb::Device reads it again for the SETUP packets after the reset.
+   [[nodiscard]] bool isHighSpeed() const override {
+      return speed() == hw::UsbDevice::Speed::High;
+   }
    void setAddress(uint8_t address) override;
    bool openEndpoint(const art::usb::EndpointConfig &config) override;
    void closeEndpoint(uint8_t endpointAddress) override;
