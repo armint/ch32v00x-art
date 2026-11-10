@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           repository: armint/libart
-          ref: 8aa317b90d1da4ab38ded26d06bd10cccf8ba96c # libArT with DeviceController::isHighSpeed()
+          ref: 2b4fc59d3361d3c414f4c78e976486dbd0a63a10 # libArT main with DeviceController::isHighSpeed()
           path: libart
       - name: Configure
         run: cmake -S tests -B build-host -DLIBART_DIR="$GITHUB_WORKSPACE/libart"
